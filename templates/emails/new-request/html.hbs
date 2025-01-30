@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yeni Malzeme Talebi</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Yeni Malzeme Talebi</h1>
+    </div>
+
+    <div class="content">
+      <p>Sayın {{adminName}},</p>
+      
+      <p>Yeni bir malzeme talebi oluşturuldu. Talep detayları aşağıdaki gibidir:</p>
+
+      <table class="table">
+        <tr>
+          <th>Talep No</th>
+          <td>{{requestId}}</td>
+        </tr>
+        <tr>
+          <th>Malzeme Kodu</th>
+          <td>{{material}}</td>
+        </tr>
+        <tr>
+          <th>Miktar</th>
+          <td>{{quantity}}</td>
+        </tr>
+        <tr>
+          <th>Talep Eden</th>
+          <td>{{requestedBy}}</td>
+        </tr>
+      </table>
+
+      <p>Talebi incelemek ve onaylamak için aşağıdaki butona tıklayabilirsiniz:</p>
+
+      <a href="{{requestUrl}}" class="button">Talebi İncele</a>
+
+      <div class="alert alert-info">
+        <p>Bu talep en kısa sürede incelenmelidir.</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Bu e-posta Depo Yönetim Sistemi tarafından otomatik olarak gönderilmiştir.</p>
+      <p>© 2025 Depo Yönetim Sistemi. Tüm hakları saklıdır.</p>
+    </div>
+  </div>
+</body>
+</html>
