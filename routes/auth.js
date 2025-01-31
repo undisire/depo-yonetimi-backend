@@ -9,10 +9,6 @@ const { validate } = require("../middleware/validators");
 router.post(
   "/register",
   [
-    body("username")
-      .trim()
-      .isLength({ min: 3 })
-      .withMessage("Username must be at least 3 characters"),
     body("email").isEmail().withMessage("Please enter a valid email"),
     body("password")
       .isLength({ min: 6 })
@@ -25,12 +21,12 @@ router.post(
   ],
   async (req, res, next) => {
     try {
-      const { username, email, password, full_name, role, phone } = req.body;
+      const { email, password, full_name, role, phone } = req.body;
 
       // Check if user already exists
       const existingUser = await User.findOne({
         where: {
-          [Op.or]: [{ username }, { email }],
+          email,
         },
       });
 
@@ -41,7 +37,6 @@ router.post(
       }
 
       const user = await User.create({
-        username,
         email,
         password,
         full_name,
@@ -56,7 +51,6 @@ router.post(
         data: {
           user: {
             id: user.id,
-            username: user.username,
             email: user.email,
             full_name: user.full_name,
             role: user.role,
@@ -74,15 +68,15 @@ router.post(
 router.post(
   "/login",
   [
-    body("username").trim().notEmpty().withMessage("Username is required"),
+    body("email").isEmail().withMessage("Please enter a valid email"),
     body("password").notEmpty().withMessage("Password is required"),
     validate,
   ],
   async (req, res, next) => {
     try {
-      const { username, password } = req.body;
+      const { email, password } = req.body;
 
-      const user = await User.findOne({ where: { username } });
+      const user = await User.findOne({ where: { email } });
 
       if (!user || !user.is_active) {
         const error = new Error("Invalid credentials");
@@ -108,7 +102,6 @@ router.post(
         data: {
           user: {
             id: user.id,
-            username: user.username,
             email: user.email,
             full_name: user.full_name,
             role: user.role,
@@ -123,20 +116,21 @@ router.post(
 );
 
 // Kullanıcı profili
-router.get("/profile", auth, async (req, res) => {
-  res.json({
-    data: {
-      user: {
+router.get("/user", auth(), async (req, res) => {
+  try {
+    res.json({
+      data: {
         id: req.user.id,
-        username: req.user.username,
         email: req.user.email,
         full_name: req.user.full_name,
         role: req.user.role,
         phone: req.user.phone,
         last_login: req.user.last_login,
       },
-    },
-  });
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Şifre değiştirme

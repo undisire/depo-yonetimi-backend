@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const { auth } = require("../middleware/auth");
 const { Project } = require("../models");
-const debug = require("debug")("app:projects");
 const { logger } = require("../services/loggerService");
 
 // Projeleri listele

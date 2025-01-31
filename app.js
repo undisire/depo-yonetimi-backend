@@ -147,7 +147,7 @@ const statisticsRoutes = require("./routes/statistics");
 
 // Route'ları kullan
 app.use(
-  "/api/projects",
+  "/projects",
   performanceMonitor(OperationTypes.LIST_PROJECTS),
   projectRoutes
 );
@@ -166,7 +166,7 @@ app.use(
   performanceMonitor(OperationTypes.LIST_DELIVERIES),
   deliveryRoutes
 );
-app.use("/api/auth", authRoutes);
+app.use("/auth", authRoutes);
 app.use(
   "/api/reports",
   performanceMonitor(OperationTypes.GENERATE_REPORT),
