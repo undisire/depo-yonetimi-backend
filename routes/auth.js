@@ -1,19 +1,27 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { body } = require('express-validator');
-const User = require('../models/User');
-const { authenticate, generateToken } = require('../middleware/auth');
-const { validate } = require('../middleware/validators');
+const { body } = require("express-validator");
+const User = require("../models/User");
+const { auth, generateToken } = require("../middleware/auth");
+const { validate } = require("../middleware/validators");
 
 // Kullanıcı kaydı
-router.post('/register',
+router.post(
+  "/register",
   [
-    body('username').trim().isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
-    body('email').isEmail().withMessage('Please enter a valid email'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    body('full_name').trim().notEmpty().withMessage('Full name is required'),
-    body('role').isIn(['admin', 'depocu', 'muhendis', 'taseron']).withMessage('Invalid role'),
-    validate
+    body("username")
+      .trim()
+      .isLength({ min: 3 })
+      .withMessage("Username must be at least 3 characters"),
+    body("email").isEmail().withMessage("Please enter a valid email"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters"),
+    body("full_name").trim().notEmpty().withMessage("Full name is required"),
+    body("role")
+      .isIn(["admin", "depocu", "muhendis", "taseron"])
+      .withMessage("Invalid role"),
+    validate,
   ],
   async (req, res, next) => {
     try {
@@ -22,12 +30,12 @@ router.post('/register',
       // Check if user already exists
       const existingUser = await User.findOne({
         where: {
-          [Op.or]: [{ username }, { email }]
-        }
+          [Op.or]: [{ username }, { email }],
+        },
       });
 
       if (existingUser) {
-        const error = new Error('User already exists');
+        const error = new Error("User already exists");
         error.status = 400;
         throw error;
       }
@@ -38,23 +46,23 @@ router.post('/register',
         password,
         full_name,
         role,
-        phone
+        phone,
       });
 
       const token = generateToken(user);
 
       res.status(201).json({
-        message: 'User registered successfully',
+        message: "User registered successfully",
         data: {
           user: {
             id: user.id,
             username: user.username,
             email: user.email,
             full_name: user.full_name,
-            role: user.role
+            role: user.role,
           },
-          token
-        }
+          token,
+        },
       });
     } catch (error) {
       next(error);
@@ -63,11 +71,12 @@ router.post('/register',
 );
 
 // Kullanıcı girişi
-router.post('/login',
+router.post(
+  "/login",
   [
-    body('username').trim().notEmpty().withMessage('Username is required'),
-    body('password').notEmpty().withMessage('Password is required'),
-    validate
+    body("username").trim().notEmpty().withMessage("Username is required"),
+    body("password").notEmpty().withMessage("Password is required"),
+    validate,
   ],
   async (req, res, next) => {
     try {
@@ -76,7 +85,7 @@ router.post('/login',
       const user = await User.findOne({ where: { username } });
 
       if (!user || !user.is_active) {
-        const error = new Error('Invalid credentials');
+        const error = new Error("Invalid credentials");
         error.status = 401;
         throw error;
       }
@@ -84,7 +93,7 @@ router.post('/login',
       const isValidPassword = await user.validatePassword(password);
 
       if (!isValidPassword) {
-        const error = new Error('Invalid credentials');
+        const error = new Error("Invalid credentials");
         error.status = 401;
         throw error;
       }
@@ -95,17 +104,17 @@ router.post('/login',
       const token = generateToken(user);
 
       res.json({
-        message: 'Login successful',
+        message: "Login successful",
         data: {
           user: {
             id: user.id,
             username: user.username,
             email: user.email,
             full_name: user.full_name,
-            role: user.role
+            role: user.role,
           },
-          token
-        }
+          token,
+        },
       });
     } catch (error) {
       next(error);
@@ -114,7 +123,7 @@ router.post('/login',
 );
 
 // Kullanıcı profili
-router.get('/profile', authenticate, async (req, res) => {
+router.get("/profile", auth, async (req, res) => {
   res.json({
     data: {
       user: {
@@ -124,19 +133,24 @@ router.get('/profile', authenticate, async (req, res) => {
         full_name: req.user.full_name,
         role: req.user.role,
         phone: req.user.phone,
-        last_login: req.user.last_login
-      }
-    }
+        last_login: req.user.last_login,
+      },
+    },
   });
 });
 
 // Şifre değiştirme
-router.put('/change-password',
-  authenticate,
+router.put(
+  "/change-password",
+  auth,
   [
-    body('current_password').notEmpty().withMessage('Current password is required'),
-    body('new_password').isLength({ min: 6 }).withMessage('New password must be at least 6 characters'),
-    validate
+    body("current_password")
+      .notEmpty()
+      .withMessage("Current password is required"),
+    body("new_password")
+      .isLength({ min: 6 })
+      .withMessage("New password must be at least 6 characters"),
+    validate,
   ],
   async (req, res, next) => {
     try {
@@ -145,7 +159,7 @@ router.put('/change-password',
       const isValidPassword = await req.user.validatePassword(current_password);
 
       if (!isValidPassword) {
-        const error = new Error('Current password is incorrect');
+        const error = new Error("Current password is incorrect");
         error.status = 401;
         throw error;
       }
@@ -153,7 +167,7 @@ router.put('/change-password',
       await req.user.update({ password: new_password });
 
       res.json({
-        message: 'Password changed successfully'
+        message: "Password changed successfully",
       });
     } catch (error) {
       next(error);

@@ -1,18 +1,18 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { Op } = require('sequelize');
-const Material = require('../models/Material');
-const StockMovement = require('../models/StockMovement');
-const Request = require('../models/Request');
-const File = require('../models/File');
-const { authenticate, authorize } = require('../middleware/auth');
-const activityLogger = require('../middleware/activityLogger');
-const SearchBuilder = require('../middleware/searchBuilder');
-const { materialValidators, validate } = require('../middleware/validators');
-const logStockMovement = require('../config/logger');
-const { cacheMiddleware, clearCache } = require('../middleware/cache');
-const socketService = require('../services/socketService'); // Added socketService
-const searchService = require('../services/searchService');
+const { Op } = require("sequelize");
+const Material = require("../models/Material");
+const StockMovement = require("../models/StockMovement");
+const Request = require("../models/Request");
+const File = require("../models/File");
+const { auth } = require("../middleware/auth");
+const { activityLogger } = require("../middleware/activityLogger");
+const SearchBuilder = require("../middleware/searchBuilder");
+const { materialValidators, validate } = require("../middleware/validators");
+const logStockMovement = require("../config/logger");
+const { cache, clearCache } = require("../middleware/cache");
+const socketService = require("../services/socketService"); // Added socketService
+const searchService = require("../services/searchService");
 
 /**
  * @swagger
@@ -80,49 +80,57 @@ const searchService = require('../services/searchService');
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/',
-  authenticate,
-  // cacheMiddleware('materials:list', 300), // 5 dakika cache
-  // activityLogger('list_materials'),
+router.get(
+  "/",
+  auth,
+  cache("materials:list", 300), // 5 dakika cache
+  activityLogger("list_materials"),
   async (req, res, next) => {
     try {
       const search = new SearchBuilder(req.query)
         // Temel arama
-        .addSearch(
-          ['material_code', 'description'],
-          req.query.search
-        )
+        .addSearch(["material_code", "description"], req.query.search)
         // Filtreleme
-        .addFilter('unit', req.query.unit)
-        .addNumberRange('stock_qty',
-          req.query.min_stock,
-          req.query.max_stock
-        )
+        .addFilter("unit", req.query.unit)
+        .addNumberRange("stock_qty", req.query.min_stock, req.query.max_stock)
         // İlişkili tablolar
         .addInclude(StockMovement, {}, false)
-        .addInclude(Request, {
-          status: req.query.request_status
-        }, false)
-        .addInclude(File, {
-          category: 'material_document',
-          is_active: true
-        }, false)
+        .addInclude(
+          Request,
+          {
+            status: req.query.request_status,
+          },
+          false
+        )
+        .addInclude(
+          File,
+          {
+            category: "material_document",
+            is_active: true,
+          },
+          false
+        )
         // Sıralama
-        .addOrder(req.query.sort_by || 'material_code', req.query.sort_direction || 'ASC')
+        .addOrder(
+          req.query.sort_by || "material_code",
+          req.query.sort_direction || "ASC"
+        )
         // Sayfalama
         .setPagination(req.query.page, req.query.limit);
 
       const { count, rows } = await Material.findAndCountAll(search.build());
 
       // Stok hareketi ve talep istatistiklerini hesapla
-      const materials = rows.map(material => ({
+      const materials = rows.map((material) => ({
         ...material.toJSON(),
         stats: {
           total_requests: material.Requests?.length || 0,
-          pending_requests: material.Requests?.filter(r => r.status === 'pending').length || 0,
+          pending_requests:
+            material.Requests?.filter((r) => r.status === "pending").length ||
+            0,
           stock_movements: material.StockMovements?.length || 0,
-          documents: material.Files?.length || 0
-        }
+          documents: material.Files?.length || 0,
+        },
       }));
 
       res.json({
@@ -131,13 +139,14 @@ router.get('/',
           total: count,
           page: parseInt(req.query.page) || 1,
           limit: parseInt(req.query.limit) || 10,
-          total_pages: Math.ceil(count / (parseInt(req.query.limit) || 10))
-        }
+          total_pages: Math.ceil(count / (parseInt(req.query.limit) || 10)),
+        },
       });
     } catch (error) {
       next(error);
     }
-});
+  }
+);
 
 /**
  * @swagger
@@ -172,47 +181,57 @@ router.get('/',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', 
-  authenticate, 
-  cacheMiddleware('materials:detail', 300),
-  activityLogger('view_material'),
+router.get(
+  "/:id",
+  auth,
+  cache("materials:detail", 300),
+  activityLogger("view_material"),
   async (req, res, next) => {
-  try {
-    const material = await Material.findByPk(req.params.id, {
-      include: [{
-        model: Request,
-        attributes: ['id', 'requestedQty', 'revisedQty', 'status', 'createdAt']
-      }]
-    });
+    try {
+      const material = await Material.findByPk(req.params.id, {
+        include: [
+          {
+            model: Request,
+            attributes: [
+              "id",
+              "requestedQty",
+              "revisedQty",
+              "status",
+              "createdAt",
+            ],
+          },
+        ],
+      });
 
-    if (!material) {
-      const error = new Error('Malzeme bulunamadı');
-      error.status = 404;
-      throw error;
+      if (!material) {
+        const error = new Error("Malzeme bulunamadı");
+        error.status = 404;
+        throw error;
+      }
+
+      const formattedRequests = material.Requests.map((request) => ({
+        id: request.id,
+        requested_qty: request.requestedQty,
+        revised_qty: request.revisedQty,
+        status: request.status,
+        created_at: request.createdAt,
+      }));
+
+      res.json({
+        id: material.id,
+        material_code: material.materialCode,
+        description: material.description,
+        unit: material.unit,
+        stock_qty: material.stockQty,
+        created_at: material.createdAt,
+        updated_at: material.updatedAt,
+        requests: formattedRequests,
+      });
+    } catch (error) {
+      next(error);
     }
-
-    const formattedRequests = material.Requests.map(request => ({
-      id: request.id,
-      requested_qty: request.requestedQty,
-      revised_qty: request.revisedQty,
-      status: request.status,
-      created_at: request.createdAt
-    }));
-
-    res.json({
-      id: material.id,
-      material_code: material.materialCode,
-      description: material.description,
-      unit: material.unit,
-      stock_qty: material.stockQty,
-      created_at: material.createdAt,
-      updated_at: material.updatedAt,
-      requests: formattedRequests
-    });
-  } catch (error) {
-    next(error);
   }
-});
+);
 
 /**
  * @swagger
@@ -259,38 +278,39 @@ router.get('/:id',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', 
-  authenticate, 
-  authorize('admin', 'depocu'),
+router.post(
+  "/",
+  auth("admin", "depocu"),
   materialValidators.create,
-  validate, 
-  activityLogger('create_material'),
-  clearCache('materials'),
+  validate,
+  activityLogger("create_material"),
+  clearCache("materials"),
   async (req, res, next) => {
-  try {
-    const { material_code, description } = req.body;
-    
-    const material = await Material.create({
-      materialCode: material_code,
-      description
-    });
-    
-    res.status(201).json({
-      message: 'Malzeme başarıyla eklendi',
-      material: {
-        id: material.id,
-        material_code: material.materialCode,
-        description: material.description,
-        unit: material.unit,
-        stock_qty: material.stockQty,
-        created_at: material.createdAt,
-        updated_at: material.updatedAt
-      }
-    });
-  } catch (error) {
-    next(error);
+    try {
+      const { material_code, description } = req.body;
+
+      const material = await Material.create({
+        materialCode: material_code,
+        description,
+      });
+
+      res.status(201).json({
+        message: "Malzeme başarıyla eklendi",
+        material: {
+          id: material.id,
+          material_code: material.materialCode,
+          description: material.description,
+          unit: material.unit,
+          stock_qty: material.stockQty,
+          created_at: material.createdAt,
+          updated_at: material.updatedAt,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -334,40 +354,42 @@ router.post('/',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id/attributes', 
-  authenticate, 
-  materialValidators.updateAttributes, 
-  validate, 
+router.put(
+  "/:id/attributes",
+  auth,
+  materialValidators.updateAttributes,
+  validate,
   async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { unit } = req.body;
+    try {
+      const { id } = req.params;
+      const { unit } = req.body;
 
-    const material = await Material.findByPk(id);
-    if (!material) {
-      const error = new Error('Malzeme bulunamadı');
-      error.status = 404;
-      throw error;
-    }
-
-    await material.update({ unit });
-
-    res.json({
-      message: 'Malzeme özniteliği başarıyla güncellendi',
-      material: {
-        id: material.id,
-        material_code: material.materialCode,
-        description: material.description,
-        unit: material.unit,
-        stock_qty: material.stockQty,
-        created_at: material.createdAt,
-        updated_at: material.updatedAt
+      const material = await Material.findByPk(id);
+      if (!material) {
+        const error = new Error("Malzeme bulunamadı");
+        error.status = 404;
+        throw error;
       }
-    });
-  } catch (error) {
-    next(error);
+
+      await material.update({ unit });
+
+      res.json({
+        message: "Malzeme özniteliği başarıyla güncellendi",
+        material: {
+          id: material.id,
+          material_code: material.materialCode,
+          description: material.description,
+          unit: material.unit,
+          stock_qty: material.stockQty,
+          created_at: material.createdAt,
+          updated_at: material.updatedAt,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -417,60 +439,61 @@ router.put('/:id/attributes',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id',
-  authenticate,
-  authorize('admin', 'depocu'),
+router.put(
+  "/:id",
+  auth("admin", "depocu"),
   materialValidators.update,
   validate,
-  activityLogger('update_material'),
-  clearCache('materials'),
+  activityLogger("update_material"),
+  clearCache("materials"),
   async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { material_code, description } = req.body;
+    try {
+      const { id } = req.params;
+      const { material_code, description } = req.body;
 
-    const material = await Material.findByPk(id);
-    if (!material) {
-      const error = new Error('Malzeme bulunamadı');
-      error.status = 404;
-      throw error;
-    }
-
-    // Aktif talepleri kontrol et
-    const activeRequests = await Request.count({
-      where: {
-        materialId: id,
-        status: ['pending', 'approved']
+      const material = await Material.findByPk(id);
+      if (!material) {
+        const error = new Error("Malzeme bulunamadı");
+        error.status = 404;
+        throw error;
       }
-    });
 
-    if (activeRequests > 0) {
-      const error = new Error('Aktif talebi olan malzeme güncellenemez');
-      error.status = 400;
-      throw error;
-    }
+      // Aktif talepleri kontrol et
+      const activeRequests = await Request.count({
+        where: {
+          materialId: id,
+          status: ["pending", "approved"],
+        },
+      });
 
-    await material.update({
-      materialCode: material_code,
-      description
-    });
-
-    res.json({
-      message: 'Malzeme başarıyla güncellendi',
-      material: {
-        id: material.id,
-        material_code: material.materialCode,
-        description: material.description,
-        unit: material.unit,
-        stock_qty: material.stockQty,
-        created_at: material.createdAt,
-        updated_at: material.updatedAt
+      if (activeRequests > 0) {
+        const error = new Error("Aktif talebi olan malzeme güncellenemez");
+        error.status = 400;
+        throw error;
       }
-    });
-  } catch (error) {
-    next(error);
+
+      await material.update({
+        materialCode: material_code,
+        description,
+      });
+
+      res.json({
+        message: "Malzeme başarıyla güncellendi",
+        material: {
+          id: material.id,
+          material_code: material.materialCode,
+          description: material.description,
+          unit: material.unit,
+          stock_qty: material.stockQty,
+          created_at: material.createdAt,
+          updated_at: material.updatedAt,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 /**
  * @swagger
@@ -498,60 +521,64 @@ router.put('/:id',
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id',
-  authenticate,
-  authorize('admin', 'depocu'),
-  activityLogger('delete_material'),
-  clearCache('materials'),
+router.delete(
+  "/:id",
+  auth("admin", "depocu"),
+  activityLogger("delete_material"),
+  clearCache("materials"),
   async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    
-    const material = await Material.findByPk(id);
-    if (!material) {
-      const error = new Error('Malzeme bulunamadı');
-      error.status = 404;
-      throw error;
-    }
+    try {
+      const { id } = req.params;
 
-    // Aktif veya tamamlanmış talepleri kontrol et
-    const relatedRequests = await Request.count({
-      where: {
-        materialId: id
+      const material = await Material.findByPk(id);
+      if (!material) {
+        const error = new Error("Malzeme bulunamadı");
+        error.status = 404;
+        throw error;
       }
-    });
 
-    if (relatedRequests > 0) {
-      const error = new Error('Bu malzemeye ait talepler olduğu için silinemez');
-      error.status = 400;
-      throw error;
+      // Aktif veya tamamlanmış talepleri kontrol et
+      const relatedRequests = await Request.count({
+        where: {
+          materialId: id,
+        },
+      });
+
+      if (relatedRequests > 0) {
+        const error = new Error(
+          "Bu malzemeye ait talepler olduğu için silinemez"
+        );
+        error.status = 400;
+        throw error;
+      }
+
+      await material.destroy();
+
+      res.json({
+        message: "Malzeme başarıyla silindi",
+      });
+    } catch (error) {
+      next(error);
     }
-
-    await material.destroy();
-    
-    res.json({
-      message: 'Malzeme başarıyla silindi'
-    });
-  } catch (error) {
-    next(error);
   }
-});
+);
 
 // Stok güncelle
-router.patch('/:id/stock',
-  authenticate,
-  materialValidators.stock,
+router.patch(
+  "/:id/stock",
+  auth,
+  // materialValidators.stock,
   validate,
-  activityLogger('stock_update'),
+  activityLogger("stock_update"),
   async (req, res, next) => {
     try {
       const { stock_qty } = req.body;
       const material = await Material.findByPk(req.params.id);
-      
+
       if (!material) {
         return res.status(404).json({
           success: false,
-          error: 'Malzeme bulunamadı'
+          error: "Malzeme bulunamadı",
         });
       }
 
@@ -571,12 +598,16 @@ router.patch('/:id/stock',
 
       // Stok düşük seviyede ise bildirim gönder
       if (stock_qty <= material.min_stock_qty) {
-        socketService.notifyLowStock(material.id, stock_qty, material.min_stock_qty);
+        socketService.notifyLowStock(
+          material.id,
+          stock_qty,
+          material.min_stock_qty
+        );
       }
 
       res.json({
         success: true,
-        data: material
+        data: material,
       });
     } catch (error) {
       next(error);
@@ -585,37 +616,37 @@ router.patch('/:id/stock',
 );
 
 // Malzemeleri ara
-router.get('/search', authenticate, cacheMiddleware(300), async (req, res) => {
+router.get("/search", auth, cache(300), async (req, res) => {
   try {
     const { search, filters, sort, page = 1, limit = 10 } = req.query;
-    
-    const results = await searchService.search('material', {
+
+    const results = await searchService.search("material", {
       search,
       filters: filters ? JSON.parse(filters) : undefined,
       sort,
       page: parseInt(page),
-      limit: parseInt(limit)
+      limit: parseInt(limit),
     });
 
     // Arama geçmişini kaydet
     if (search) {
-      await searchService.saveSearchHistory(req.user.id, 'material', search);
+      await searchService.saveSearchHistory(req.user.id, "material", search);
     }
 
     res.json(results);
   } catch (error) {
-    console.error('Search failed:', error);
-    res.status(500).json({ error: 'Search failed' });
+    console.error("Search failed:", error);
+    res.status(500).json({ error: "Search failed" });
   }
 });
 
 // Arama önerileri al
-router.get('/suggestions', authenticate, cacheMiddleware(300), async (req, res) => {
+router.get("/suggestions", auth, cache(300), async (req, res) => {
   try {
     const { field, prefix } = req.query;
-    
+
     const suggestions = await searchService.getSuggestions(
-      'material',
+      "material",
       field,
       prefix,
       10
@@ -623,26 +654,26 @@ router.get('/suggestions', authenticate, cacheMiddleware(300), async (req, res) 
 
     res.json(suggestions);
   } catch (error) {
-    console.error('Failed to get suggestions:', error);
-    res.status(500).json({ error: 'Failed to get suggestions' });
+    console.error("Failed to get suggestions:", error);
+    res.status(500).json({ error: "Failed to get suggestions" });
   }
 });
 
 // Popüler aramaları al
-router.get('/popular-searches', authenticate, cacheMiddleware(3600), async (req, res) => {
+router.get("/popular-searches", auth, cache(3600), async (req, res) => {
   try {
-    const { timeframe = '24h', limit = 10 } = req.query;
-    
+    const { timeframe = "24h", limit = 10 } = req.query;
+
     const popularSearches = await searchService.getPopularSearches(
-      'material',
+      "material",
       timeframe,
       parseInt(limit)
     );
 
     res.json(popularSearches);
   } catch (error) {
-    console.error('Failed to get popular searches:', error);
-    res.status(500).json({ error: 'Failed to get popular searches' });
+    console.error("Failed to get popular searches:", error);
+    res.status(500).json({ error: "Failed to get popular searches" });
   }
 });
 
