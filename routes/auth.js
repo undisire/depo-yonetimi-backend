@@ -115,6 +115,16 @@ router.post(
   }
 );
 
+router.post("/logout", auth(), async (req, res, next) => {
+  try {
+    res.json({
+      message: "Logout successful",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Kullanıcı profili
 router.get("/user", auth(), async (req, res) => {
   try {
@@ -132,41 +142,5 @@ router.get("/user", auth(), async (req, res) => {
     next(error);
   }
 });
-
-// Şifre değiştirme
-router.put(
-  "/change-password",
-  auth,
-  [
-    body("current_password")
-      .notEmpty()
-      .withMessage("Current password is required"),
-    body("new_password")
-      .isLength({ min: 6 })
-      .withMessage("New password must be at least 6 characters"),
-    validate,
-  ],
-  async (req, res, next) => {
-    try {
-      const { current_password, new_password } = req.body;
-
-      const isValidPassword = await req.user.validatePassword(current_password);
-
-      if (!isValidPassword) {
-        const error = new Error("Current password is incorrect");
-        error.status = 401;
-        throw error;
-      }
-
-      await req.user.update({ password: new_password });
-
-      res.json({
-        message: "Password changed successfully",
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
 
 module.exports = router;

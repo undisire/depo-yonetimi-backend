@@ -1,27 +1,23 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-const Request = sequelize.define(
-  "Request",
+const Inventory = sequelize.define(
+  "Inventory",
   {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    requested_by: {
+    product_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    material_id: {
+    warehouse_id: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
     },
-    project_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
-    requested_qty: {
+    quantity: {
       type: DataTypes.DECIMAL(10, 3),
       allowNull: false,
       defaultValue: 0,
@@ -29,15 +25,18 @@ const Request = sequelize.define(
         min: 0,
       },
     },
-    request_note: {
-      type: DataTypes.STRING,
+    unit: {
+      type: DataTypes.ENUM("metre", "kilogram", "adet"),
       allowNull: true,
     },
   },
   {
-    tableName: "requests",
+    tableName: "inventories",
+    underscored: true,
     timestamps: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   }
 );
 
-module.exports = Request;
+module.exports = Inventory;

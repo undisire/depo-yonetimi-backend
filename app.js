@@ -144,18 +144,25 @@ const reportsRoutes = require("./routes/reports");
 const notificationsRoutes = require("./routes/notifications");
 const filesRoutes = require("./routes/files");
 const statisticsRoutes = require("./routes/statistics");
+const warehouseRoutes = require("./routes/warehouses");
+const usersRoutes = require("./routes/users");
+const uomsRoutes = require("./routes/uoms");
 
 // Route'ları kullan
+app.use("/users", usersRoutes);
+app.use("/warehouses", warehouseRoutes);
+app.use("/uoms", uomsRoutes);
 app.use(
   "/projects",
   performanceMonitor(OperationTypes.LIST_PROJECTS),
   projectRoutes
 );
 app.use(
-  "/api/materials",
+  "/materials",
   performanceMonitor(OperationTypes.LIST_MATERIALS),
   materialRoutes
 );
+
 app.use(
   "/api/requests",
   performanceMonitor(OperationTypes.LIST_REQUESTS),

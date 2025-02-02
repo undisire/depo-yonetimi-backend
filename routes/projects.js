@@ -8,7 +8,7 @@ const { logger } = require("../services/loggerService");
 router.get("/", auth(), async (req, res) => {
   try {
     const projects = await Project.findAll();
-    res.json(projects);
+    res.json({ data: projects });
   } catch (error) {
     logger.error("Error listing projects:", error);
     res.status(500).json({ error: error.message });

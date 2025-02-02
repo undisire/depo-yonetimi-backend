@@ -22,9 +22,9 @@ const User = sequelize.define(
       },
     },
     role: {
-      type: DataTypes.ENUM("admin", "depocu", "muhendis", "taseron"),
+      type: DataTypes.ENUM("admin", "engineer", "warehouse", "contractor"),
       allowNull: false,
-      defaultValue: "muhendis",
+      defaultValue: "engineer",
     },
     full_name: {
       type: DataTypes.STRING,
@@ -44,6 +44,13 @@ const User = sequelize.define(
   },
   {
     timestamps: true,
+    // defaultScope: {
+    //   attributes: { exclude: ["password"] },
+    // },
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+    deletedAt: "deleted_at",
+    paranoid: true,
     hooks: {
       beforeCreate: async (user) => {
         if (user.password) {

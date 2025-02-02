@@ -1,10 +1,12 @@
 const sequelize = require("./config/database");
 const Project = require("./models/Project");
 const Material = require("./models/Material");
+const MaterialAttribute = require("./models/MaterialAttribute");
 const Request = require("./models/Request");
 const Delivery = require("./models/Delivery");
 const User = require("./models/User");
-// const Warehouse = require("./models/Warehouse");
+const Warehouse = require("./models/Warehouse");
+const Uom = require("./models/Uom");
 
 // İlişkileri tanımla
 Request.belongsTo(Project, {
@@ -78,44 +80,44 @@ async function syncDatabase() {
     console.log("Veritabanı bağlantısı başarılı");
 
     // Tüm modelleri birlikte senkronize et
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ force: false, alter: true });
     console.log("Tüm tablolar başarıyla oluşturuldu");
 
-    // Örnek veriler ekle
-    const project = await Project.create({
-      code: 123,
-      name: "Test Projesi",
-      pypNumber: "PYP001",
-    });
+    // // Örnek veriler ekle
+    // const project = await Project.create({
+    //   code: 123,
+    //   name: "Test Projesi",
+    //   pypNumber: "PYP001",
+    // });
 
-    const user = await User.create({
-      full_name: "Test User",
-      username: "testuser",
-      email: "testuser@example.com",
-      password: "password123",
-    });
+    // const user = await User.create({
+    //   full_name: "Test User",
+    //   username: "testuser",
+    //   email: "testuser@example.com",
+    //   password: "password123",
+    // });
 
     // const warehouse = await Warehouse.create({
     //   name: "Ana Depo",
     //   location: "İstanbul",
     // });
 
-    const material = await Material.create({
-      materialCode: "MTL001",
-      description: "Test Malzemesi",
-      unit: "adet",
-      stockQty: 100,
-      // warehouseId: warehouse.id,
-    });
+    // const material = await Material.create({
+    //   materialCode: "MTL001",
+    //   description: "Test Malzemesi",
+    //   unit: "adet",
+    //   stockQty: 100,
+    //   // warehouseId: warehouse.id,
+    // });
 
-    // Örnek talep oluştur
-    const request = await Request.create({
-      projectId: project.id,
-      materialId: material.id,
-      requestedQty: 10,
-      status: "pending",
-      userId: user.id,
-    });
+    // // Örnek talep oluştur
+    // const request = await Request.create({
+    //   projectId: project.id,
+    //   materialId: material.id,
+    //   requestedQty: 10,
+    //   status: "pending",
+    //   userId: user.id,
+    // });
 
     console.log("Örnek veriler eklendi");
   } catch (error) {

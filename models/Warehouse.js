@@ -1,41 +1,34 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-const Material = sequelize.define(
-  "Material",
+const Warehouse = sequelize.define(
+  "Warehouse",
   {
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-    },
     code: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    description: {
-      type: DataTypes.STRING,
+    location: {
+      type: DataTypes.TEXT,
       allowNull: true,
     },
-    uom_id: {
-      type: DataTypes.INTEGER,
+    is_active: {
+      type: DataTypes.BOOLEAN,
       allowNull: false,
+      defaultValue: true,
     },
   },
   {
-    tableName: "materials",
-    underscored: true,
+    tableName: "warehouses",
     timestamps: true,
     paranoid: true,
     createdAt: "created_at",
     updatedAt: "updated_at",
-    deletedAt: "deleted_at",
   }
 );
 
-module.exports = Material;
+module.exports = Warehouse;

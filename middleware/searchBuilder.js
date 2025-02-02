@@ -1,4 +1,4 @@
-const { Op } = require('sequelize');
+const { Op } = require("sequelize");
 
 class SearchBuilder {
   constructor(query) {
@@ -12,7 +12,7 @@ class SearchBuilder {
 
   // Temel filtreleme
   addFilter(field, value, operator = Op.eq) {
-    if (value !== undefined && value !== '') {
+    if (value !== undefined && value !== "") {
       this.where[field] = { [operator]: value };
     }
     return this;
@@ -21,8 +21,8 @@ class SearchBuilder {
   // Metin araması
   addSearch(fields, value) {
     if (value) {
-      const searchConditions = fields.map(field => ({
-        [field]: { [Op.like]: `%${value}%` }
+      const searchConditions = fields.map((field) => ({
+        [field]: { [Op.like]: `%${value}%` },
       }));
       this.where[Op.or] = searchConditions;
     }
@@ -33,15 +33,15 @@ class SearchBuilder {
   addDateRange(field, startDate, endDate) {
     if (startDate && endDate) {
       this.where[field] = {
-        [Op.between]: [new Date(startDate), new Date(endDate)]
+        [Op.between]: [new Date(startDate), new Date(endDate)],
       };
     } else if (startDate) {
       this.where[field] = {
-        [Op.gte]: new Date(startDate)
+        [Op.gte]: new Date(startDate),
       };
     } else if (endDate) {
       this.where[field] = {
-        [Op.lte]: new Date(endDate)
+        [Op.lte]: new Date(endDate),
       };
     }
     return this;
@@ -51,32 +51,33 @@ class SearchBuilder {
   addNumberRange(field, min, max) {
     if (min !== undefined && max !== undefined) {
       this.where[field] = {
-        [Op.between]: [min, max]
+        [Op.between]: [min, max],
       };
     } else if (min !== undefined) {
       this.where[field] = {
-        [Op.gte]: min
+        [Op.gte]: min,
       };
     } else if (max !== undefined) {
       this.where[field] = {
-        [Op.lte]: max
+        [Op.lte]: max,
       };
     }
     return this;
   }
 
   // İlişkili tablo filtresi
-  addInclude(model, where = {}, required = false) {
+  addInclude(model, where = {}, required = false, as) {
     this.include.push({
       model,
       where,
-      required
+      required,
+      as,
     });
     return this;
   }
 
   // Sıralama
-  addOrder(field, direction = 'ASC') {
+  addOrder(field, direction = "ASC") {
     if (field) {
       this.order.push([field, direction.toUpperCase()]);
     }
@@ -99,7 +100,7 @@ class SearchBuilder {
       include: this.include,
       order: this.order,
       limit: this.limit,
-      offset: this.offset
+      offset: this.offset,
     };
   }
 }
