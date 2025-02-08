@@ -7,6 +7,7 @@ const Project = require("./Project");
 const Warehouse = require("./Warehouse");
 const StockItem = require("./StockItem");
 const Uom = require("./Uom");
+const Institution = require("./Institution");
 const sequelize = require("../config/database");
 
 // İlişkileri tanımla
@@ -35,6 +36,7 @@ Project.hasMany(Request);
 Request.belongsTo(Project);
 
 module.exports = {
+  Institution,
   Material,
   MaterialAttribute,
   Request,

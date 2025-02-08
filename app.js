@@ -147,8 +147,10 @@ const statisticsRoutes = require("./routes/statistics");
 const warehouseRoutes = require("./routes/warehouses");
 const usersRoutes = require("./routes/users");
 const uomsRoutes = require("./routes/uoms");
+const institutionRoutes = require("./routes/institutions");
 
 // Route'ları kullan
+app.use("/institutions", institutionRoutes);
 app.use("/users", usersRoutes);
 app.use("/warehouses", warehouseRoutes);
 app.use("/uoms", uomsRoutes);

@@ -7,6 +7,7 @@ const Delivery = require("./models/Delivery");
 const User = require("./models/User");
 const Warehouse = require("./models/Warehouse");
 const Uom = require("./models/Uom");
+const Institution = require("./models/Institution");
 
 // İlişkileri tanımla
 Request.belongsTo(Project, {
