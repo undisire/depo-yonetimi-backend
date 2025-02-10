@@ -1,9 +1,14 @@
-const { DataTypes } = require("sequelize");
+const { DataTypes, Model } = require("sequelize");
 const sequelize = require("../config/database");
 const bcrypt = require("bcryptjs");
 
-const User = sequelize.define(
-  "User",
+class User extends Model {
+  static associate(models) {
+    User.belongsToMany(models.Project, { through: models.ProjectUser });
+  }
+}
+
+User.init(
   {
     email: {
       type: DataTypes.STRING,
@@ -43,10 +48,10 @@ const User = sequelize.define(
     },
   },
   {
+    sequelize,
+    modelName: "User",
+    tableName: "users",
     timestamps: true,
-    // defaultScope: {
-    //   attributes: { exclude: ["password"] },
-    // },
     createdAt: "created_at",
     updatedAt: "updated_at",
     deletedAt: "deleted_at",

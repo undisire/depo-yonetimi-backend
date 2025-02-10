@@ -1,7 +1,11 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-class Project extends Model {}
+class Project extends Model {
+  static associate(models) {
+    Project.belongsToMany(models.User, { through: models.ProjectUser });
+  }
+}
 
 Project.init(
   {
@@ -35,9 +39,11 @@ Project.init(
     sequelize,
     modelName: "Project",
     tableName: "projects",
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+    deletedAt: "deleted_at",
     paranoid: true,
     timestamps: true,
-    underscored: true,
   }
 );
 
