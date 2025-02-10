@@ -28,43 +28,6 @@ const databaseLogger = require("./middleware/databaseLogger");
 const socketService = require("./services/socketService");
 require("./models");
 
-// Modelleri içe aktar
-// const Project = require('./models/Project');
-// const Material = require('./models/Material');
-// const Request = require('./models/Request');
-// const Delivery = require('./models/Delivery');
-
-// // Model ilişkilerini tanımla
-// Request.belongsTo(Project, {
-//   foreignKey: 'projectId',
-//   targetKey: 'id'
-// });
-
-// Request.belongsTo(Material, {
-//   foreignKey: 'materialId',
-//   targetKey: 'id'
-// });
-
-// Project.hasMany(Request, {
-//   foreignKey: 'projectId',
-//   sourceKey: 'id'
-// });
-
-// Material.hasMany(Request, {
-//   foreignKey: 'materialId',
-//   sourceKey: 'id'
-// });
-
-// Request.hasOne(Delivery, {
-//   foreignKey: 'requestId',
-//   sourceKey: 'id'
-// });
-
-// Delivery.belongsTo(Request, {
-//   foreignKey: 'requestId',
-//   targetKey: 'id'
-// });
-
 // Express uygulamasını oluştur
 const app = express();
 const server = http.createServer(app);
@@ -135,59 +98,27 @@ app.use((req, res, next) => {
 });
 
 // Route'ları içe aktar
-const projectRoutes = require("./routes/projects");
-const materialRoutes = require("./routes/materials");
-const requestRoutes = require("./routes/requests");
-const deliveryRoutes = require("./routes/deliveries");
-const authRoutes = require("./routes/auth");
-const reportsRoutes = require("./routes/reports");
-const notificationsRoutes = require("./routes/notifications");
-const filesRoutes = require("./routes/files");
-const statisticsRoutes = require("./routes/statistics");
-const warehouseRoutes = require("./routes/warehouses");
-const usersRoutes = require("./routes/users");
-const uomsRoutes = require("./routes/uoms");
-const institutionRoutes = require("./routes/institutions");
+const routes = {
+  projects: require("./routes/projects"),
+  materials: require("./routes/materials"),
+  requests: require("./routes/requests"),
+  deliveries: require("./routes/deliveries"),
+  auth: require("./routes/auth"),
+  reports: require("./routes/reports"),
+  notifications: require("./routes/notifications"),
+  files: require("./routes/files"),
+  statistics: require("./routes/statistics"),
+  warehouses: require("./routes/warehouses"),
+  users: require("./routes/users"),
+  uoms: require("./routes/uoms"),
+  institutions: require("./routes/institutions"),
+  employees: require("./routes/employees"),
+  roles: require("./routes/roles"),
+};
 
-// Route'ları kullan
-app.use("/institutions", institutionRoutes);
-app.use("/users", usersRoutes);
-app.use("/warehouses", warehouseRoutes);
-app.use("/uoms", uomsRoutes);
-app.use(
-  "/projects",
-  performanceMonitor(OperationTypes.LIST_PROJECTS),
-  projectRoutes
-);
-app.use(
-  "/materials",
-  performanceMonitor(OperationTypes.LIST_MATERIALS),
-  materialRoutes
-);
-
-app.use(
-  "/api/requests",
-  performanceMonitor(OperationTypes.LIST_REQUESTS),
-  requestRoutes
-);
-app.use(
-  "/api/deliveries",
-  performanceMonitor(OperationTypes.LIST_DELIVERIES),
-  deliveryRoutes
-);
-app.use("/auth", authRoutes);
-app.use(
-  "/api/reports",
-  performanceMonitor(OperationTypes.GENERATE_REPORT),
-  reportsRoutes
-);
-app.use("/api/notifications", notificationsRoutes);
-app.use(
-  "/api/files",
-  performanceMonitor(OperationTypes.FILE_UPLOAD),
-  filesRoutes
-);
-app.use("/api/statistics", statisticsRoutes);
+for (const [routeName, routeController] of Object.entries(routes)) {
+  app.use(`/${routeName}`, routeController);
+}
 
 // 404 handler
 app.use((req, res, next) => {

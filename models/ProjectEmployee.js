@@ -1,11 +1,11 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-class ProjectUser extends Model {
+class ProjectEmployee extends Model {
   static associate(models) {}
 }
 
-ProjectUser.init(
+ProjectEmployee.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -16,27 +16,27 @@ ProjectUser.init(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    user_id: {
+    employee_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    role: {
-      type: DataTypes.ENUM("admin", "engineer", "warehouse", "contractor"),
-      defaultValue: "engineer",
+    role_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
   },
   {
     sequelize,
-    modelName: "ProjectUser",
-    tableName: "project_user",
+    modelName: "ProjectEmployee",
+    tableName: "project_employee",
     timestamps: true,
     index: [
       {
         unique: true,
-        fields: ["project_id", "user_id"],
+        fields: ["project_id", "employee_id"],
       },
     ],
   }
 );
 
-module.exports = ProjectUser;
+module.exports = ProjectEmployee;

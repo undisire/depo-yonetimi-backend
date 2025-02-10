@@ -13,6 +13,9 @@ const models = {
   Uom: require("./Uom"),
   Institution: require("./Institution"),
   ProjectUser: require("./ProjectUser"),
+  Employee: require("./Employee"),
+  ProjectEmployee: require("./ProjectEmployee"),
+  Role: require("./Role"),
 };
 
 Object.values(models).forEach((model) => {
