@@ -12,7 +12,6 @@ const models = {
   StockItem: require("./StockItem"),
   Uom: require("./Uom"),
   Institution: require("./Institution"),
-  ProjectUser: require("./ProjectUser"),
   Employee: require("./Employee"),
   ProjectEmployee: require("./ProjectEmployee"),
   Role: require("./Role"),

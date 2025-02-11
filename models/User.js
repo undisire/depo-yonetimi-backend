@@ -4,7 +4,6 @@ const bcrypt = require("bcryptjs");
 
 class User extends Model {
   static associate(models) {
-    User.belongsToMany(models.Project, { through: models.ProjectUser });
   }
 }
 
