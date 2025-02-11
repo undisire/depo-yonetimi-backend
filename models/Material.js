@@ -25,11 +25,6 @@ Material.init(
     sap_no: {
       type: DataTypes.STRING,
       allowNull: true,
-      unique: false,
-    },
-    code: {
-      type: DataTypes.STRING,
-      allowNull: false,
       unique: true,
     },
     name: {
