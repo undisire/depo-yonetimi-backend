@@ -1,7 +1,14 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-class Uom extends Model {}
+class Uom extends Model {
+  static associate(models) {
+    this.hasMany(models.Material, {
+      foreignKey: "uom_id",
+      as: "materials",
+    });
+  }
+}
 
 Uom.init(
   {
@@ -17,6 +24,7 @@ Uom.init(
     symbol: {
       type: DataTypes.STRING(10),
       allowNull: false,
+      unique: true,
     },
   },
   {

@@ -1,4 +1,4 @@
-const { sequelize } = require("./models");
+const { sequelize, User } = require("./models");
 
 // Warehouse ilişkileri
 // Warehouse.hasMany(Material, {

@@ -102,13 +102,14 @@ router.post(
     const t = await sequelize.transaction();
 
     try {
-      const { code, name, uom_id, description, attributes } = req.body;
+      const { code, name, uom_id, description, attributes, sap_no } = req.body;
 
       const material = await Material.create({
         uom_id,
         code,
         name,
         description,
+        sap_no,
       });
 
       await MaterialAttribute.destroy({
@@ -148,7 +149,7 @@ router.put(
   async (req, res, next) => {
     try {
       const { id } = req.params;
-      const { code, name, uom_id, description, attributes } = req.body;
+      const { code, name, uom_id, description, attributes, sap_no } = req.body;
 
       const material = await Material.findByPk(id);
 
@@ -163,6 +164,7 @@ router.put(
         name,
         uom_id,
         description,
+        sap_no,
       });
 
       await MaterialAttribute.destroy({

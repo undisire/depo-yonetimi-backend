@@ -1,8 +1,16 @@
-const { DataTypes } = require("sequelize");
+const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-const MaterialAttribute = sequelize.define(
-  "MaterialAttribute",
+class MaterialAttribute extends Model {
+  static associate(models) {
+    this.belongsTo(models.Material, {
+      foreignKey: "material_id",
+      as: "material",
+    });
+  }
+}
+
+MaterialAttribute.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -23,6 +31,7 @@ const MaterialAttribute = sequelize.define(
     },
   },
   {
+    sequelize,
     tableName: "material_attributes",
     timestamps: false,
   }

@@ -2,6 +2,7 @@ const { Sequelize } = require("sequelize");
 const sequelize = require("../config/database");
 
 const models = {
+  Uom: require("./Uom"),
   Material: require("./Material"),
   MaterialAttribute: require("./MaterialAttribute"),
   Request: require("./Request"),
@@ -10,7 +11,6 @@ const models = {
   Project: require("./Project"),
   Warehouse: require("./Warehouse"),
   StockItem: require("./StockItem"),
-  Uom: require("./Uom"),
   Institution: require("./Institution"),
   Employee: require("./Employee"),
   ProjectEmployee: require("./ProjectEmployee"),

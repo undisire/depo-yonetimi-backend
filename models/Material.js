@@ -1,13 +1,31 @@
-const { DataTypes } = require("sequelize");
+const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-const Material = sequelize.define(
-  "Material",
+class Material extends Model {
+  static associate(models) {
+    this.belongsTo(models.Uom, {
+      foreignKey: "uom_id",
+      as: "uom",
+    });
+
+    this.hasMany(models.MaterialAttribute, {
+      foreignKey: "material_id",
+      as: "attributes",
+    });
+  }
+}
+
+Material.init(
   {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
+    },
+    sap_no: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: false,
     },
     code: {
       type: DataTypes.STRING,
@@ -28,6 +46,7 @@ const Material = sequelize.define(
     },
   },
   {
+    sequelize,
     tableName: "materials",
     underscored: true,
     timestamps: true,
