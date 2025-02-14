@@ -19,6 +19,7 @@ router.get("/", auth(), async (req, res) => {
           ],
         ],
       },
+      order: [["id", "DESC"]],
     });
     res.json({ data: projects });
   } catch (error) {

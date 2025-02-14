@@ -23,7 +23,7 @@ router.get(
     try {
       const search = new SearchBuilder(req.query)
         // Temel arama
-        .addSearch(["code", "description"], req.query.search)
+        .addSearch(["sap_no", "name", "description"], req.query.search)
         .addInclude(Uom, {}, false, "uom")
         // Filtreleme
         .addFilter("unit", req.query.unit)
@@ -49,7 +49,7 @@ router.get(
 
       res.json({
         data: materials,
-        pagination: {
+        meta: {
           total: count,
           page: parseInt(req.query.page) || 1,
           limit: parseInt(req.query.limit) || 10,

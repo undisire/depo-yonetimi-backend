@@ -6,15 +6,14 @@ const models = {
   Material: require("./Material"),
   MaterialAttribute: require("./MaterialAttribute"),
   Request: require("./Request"),
-  Delivery: require("./Delivery"),
   User: require("./User"),
   Project: require("./Project"),
   Warehouse: require("./Warehouse"),
-  StockItem: require("./StockItem"),
   Institution: require("./Institution"),
   Employee: require("./Employee"),
   ProjectEmployee: require("./ProjectEmployee"),
   Role: require("./Role"),
+  Inventory: require("./Inventory"),
 };
 
 Object.values(models).forEach((model) => {

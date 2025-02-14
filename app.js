@@ -102,18 +102,14 @@ const routes = {
   projects: require("./routes/projects"),
   materials: require("./routes/materials"),
   requests: require("./routes/requests"),
-  deliveries: require("./routes/deliveries"),
   auth: require("./routes/auth"),
-  reports: require("./routes/reports"),
-  notifications: require("./routes/notifications"),
-  files: require("./routes/files"),
-  statistics: require("./routes/statistics"),
   warehouses: require("./routes/warehouses"),
   users: require("./routes/users"),
   uoms: require("./routes/uoms"),
   institutions: require("./routes/institutions"),
   employees: require("./routes/employees"),
   roles: require("./routes/roles"),
+  inventory: require("./routes/inventory"),
 };
 
 for (const [routeName, routeController] of Object.entries(routes)) {
