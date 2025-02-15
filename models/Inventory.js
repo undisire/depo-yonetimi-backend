@@ -48,8 +48,13 @@ Inventory.init(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    item_type: {
+      type: DataTypes.ENUM("whole", "part"),
+      allowNull: false,
+      defaultValue: "whole",
+    },
     quantity: {
-      type: DataTypes.DECIMAL(10, 3),
+      type: DataTypes.FLOAT,
       allowNull: false,
       defaultValue: 0,
       validate: {
@@ -57,7 +62,7 @@ Inventory.init(
       },
     },
     reserved_quantity: {
-      type: DataTypes.DECIMAL(10, 3),
+      type: DataTypes.FLOAT,
       allowNull: false,
       defaultValue: 0,
       validate: {

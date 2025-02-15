@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { auth } = require("../middleware/auth");
-const { Inventory } = require("../models");
+const { Inventory, Material } = require("../models");
 
 router.get("/", auth(["admin"]), async (req, res, next) => {
   try {
@@ -29,6 +29,10 @@ router.get("/", auth(["admin"]), async (req, res, next) => {
 
 router.post("/", auth(["admin"]), async (req, res, next) => {
   try {
+    const material = await Material.findByPk(req.body.material_id);
+
+    req.body.uom_id = material.uom_id;
+
     const inventory = await Inventory.create(req.body);
     res.json({ data: inventory });
   } catch (e) {

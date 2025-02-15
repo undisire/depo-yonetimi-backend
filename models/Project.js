@@ -14,6 +14,10 @@ Project.init(
       primaryKey: true,
       autoIncrement: true,
     },
+    type: {
+      type: DataTypes.ENUM("tesis", "ket"),
+      allowNull: false,
+    },
     pyp_code: {
       type: DataTypes.STRING,
       allowNull: false,
