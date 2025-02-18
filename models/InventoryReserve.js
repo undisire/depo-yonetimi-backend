@@ -1,7 +1,7 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-class Inventory extends Model {
+class InventoryReserve extends Model {
   static associate(models) {
     this.belongsTo(models.Material, {
       foreignKey: "material_id",
@@ -13,19 +13,24 @@ class Inventory extends Model {
       as: "warehouse",
     });
 
+    this.belongsTo(models.InventoryItem, {
+      foreignKey: "inventory_item_id",
+      as: "inventory_item",
+    });
+
+    this.belongsTo(models.Project, {
+      foreignKey: "project_id",
+      as: "project",
+    });
+
     this.belongsTo(models.Uom, {
       foreignKey: "uom_id",
       as: "uom",
     });
-
-    this.belongsTo(models.Institution, {
-      foreignKey: "institution_id",
-      as: "institution",
-    });
   }
 }
 
-Inventory.init(
+InventoryReserve.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -40,18 +45,17 @@ Inventory.init(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    uom_id: {
+    inventory_item_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    institution_id: {
+    project_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    item_type: {
-      type: DataTypes.ENUM("whole", "part"),
+    uom_id: {
+      type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: "whole",
     },
     quantity: {
       type: DataTypes.FLOAT,
@@ -61,26 +65,17 @@ Inventory.init(
         min: 0,
       },
     },
-    reserved_quantity: {
-      type: DataTypes.FLOAT,
+    status: {
+      type: DataTypes.ENUM("active", "completed", "cancelled"),
       allowNull: false,
-      defaultValue: 0,
-      validate: {
-        min: 0,
-      },
+      defaultValue: "active",
     },
   },
   {
     sequelize,
-    modelName: "Inventory",
-    tableName: "inventory",
-    timestamps: true,
-    underscored: true,
-    paranoid: true,
-    createdAt: "created_at",
-    updatedAt: "updated_at",
-    deletedAt: "deleted_at",
+    modelName: "InventoryReserve",
+    tableName: "inventory_reserves",
   }
 );
 
-module.exports = Inventory;
+module.exports = InventoryReserve;

@@ -1,8 +1,9 @@
-const express = require("express");
-const router = express.Router();
 const { auth } = require("../middleware/auth");
 const { Role } = require("../models");
 const { logger } = require("../services/loggerService");
+const express = require("express");
+
+const router = express.Router();
 
 router.get("/", auth(), async (req, res) => {
   try {

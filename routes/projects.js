@@ -1,12 +1,15 @@
-const express = require("express");
-const router = express.Router();
 const { auth } = require("../middleware/auth");
-const { Project, Employee, sequelize } = require("../models");
+const { Project, Employee, Material, sequelize } = require("../models");
 const { logger } = require("../services/loggerService");
+const express = require("express");
+
+const router = express.Router();
 
 router.get("/", auth(), async (req, res) => {
   try {
-    const projects = await Project.findAll({
+    const { page = 1, limit = 20 } = req.query;
+
+    const { rows: projects, count } = await Project.findAndCountAll({
       attributes: {
         include: [
           [
@@ -20,8 +23,18 @@ router.get("/", auth(), async (req, res) => {
         ],
       },
       order: [["id", "DESC"]],
+      limit: parseInt(limit),
+      offset: (page - 1) * limit,
     });
-    res.json({ data: projects });
+
+    res.json({
+      data: projects,
+      meta: {
+        total: count,
+        page: parseInt(page),
+        total_pages: Math.ceil(count / limit),
+      },
+    });
   } catch (error) {
     logger.error("Error listing projects:", error);
     res.status(500).json({ error: error.message });
@@ -132,6 +145,33 @@ router.post("/:id/employees", auth(["admin"]), async (req, res) => {
     res.json({ data: employee });
   } catch (error) {
     console.log(error);
+    logger.error("Error adding user to project:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/:id/reserves", auth(["admin"]), async (req, res) => {
+  try {
+    const project = await Project.findByPk(req.params.id);
+
+    if (!project) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    const reserves = await project.getReserves({
+      include: [
+        "inventory",
+        "warehouse",
+        {
+          model: Material,
+          as: "material",
+          include: ["uom"],
+        },
+      ],
+    });
+
+    res.json({ data: reserves });
+  } catch (error) {
     logger.error("Error adding user to project:", error);
     res.status(500).json({ error: error.message });
   }

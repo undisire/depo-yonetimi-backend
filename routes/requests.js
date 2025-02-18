@@ -4,7 +4,6 @@ const { Op } = require("sequelize");
 const Request = require("../models/Request");
 const Material = require("../models/Material");
 const Project = require("../models/Project");
-const Delivery = require("../models/Delivery");
 const File = require("../models/File");
 const { auth } = require("../middleware/auth");
 const { activityLogger } = require("../middleware/activityLogger");
@@ -118,7 +117,6 @@ router.get(
         // İlişkili tablolar
         .addInclude(Material, {}, true)
         .addInclude(Project, {}, true)
-        .addInclude(Delivery, {}, false)
         .addInclude(
           File,
           {
@@ -151,13 +149,6 @@ router.get(
           project_name: request.Project.project_name,
           pyp_number: request.Project.pyp_number,
         },
-        delivery: request.Delivery
-          ? {
-              id: request.Delivery.id,
-              status: request.Delivery.status,
-              delivery_date: request.Delivery.delivery_date,
-            }
-          : null,
         documents: request.Files?.length || 0,
       }));
 

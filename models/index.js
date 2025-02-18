@@ -13,7 +13,9 @@ const models = {
   Employee: require("./Employee"),
   ProjectEmployee: require("./ProjectEmployee"),
   Role: require("./Role"),
-  Inventory: require("./Inventory"),
+  InventoryItem: require("./InventoryItem"),
+  InventoryReserve: require("./InventoryReserve"),
+  InventoryTransaction: require("./InventoryTransaction"),
 };
 
 Object.values(models).forEach((model) => {

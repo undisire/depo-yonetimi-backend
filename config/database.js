@@ -1,19 +1,22 @@
-const { Sequelize } = require('sequelize');
-require('dotenv').config();
+require("dotenv").config();
+const { Sequelize } = require("sequelize");
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,     // Veritabanı adı
-  process.env.DB_USER,     // PostgreSQL kullanıcı adı
-  process.env.DB_PASSWORD, // PostgreSQL şifre
-  {
-    host: process.env.DB_HOST,   // Sunucu adresi (localhost)
-    port: process.env.DB_PORT,   // PostgreSQL portu (varsayılan 5432)
-    dialect: 'mysql',         // Kullanılan veritabanı türü
-    logging: false,               // SQL sorgularını konsolda gösterme
-    define: {
-        underscored: true
-    }
-  }
-);
+const config = {
+  dialect: "mysql",
+  database: process.env.DB_NAME,
+  username: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  logging: false,
+  define: {
+    underscored: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+    deletedAt: "deleted_at",
+  },
+};
+
+const sequelize = new Sequelize(config);
 
 module.exports = sequelize;

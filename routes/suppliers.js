@@ -1,7 +1,8 @@
-const express = require("express");
-const router = express.Router();
 const { auth } = require("../middleware/auth");
 const { Institution } = require("../models");
+const express = require("express");
+
+const router = express.Router();
 
 router.get("/", auth(["admin"]), async (req, res, next) => {
   try {

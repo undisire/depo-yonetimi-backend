@@ -4,6 +4,10 @@ const sequelize = require("../config/database");
 class Project extends Model {
   static associate(models) {
     this.belongsToMany(models.Employee, { through: models.ProjectEmployee });
+    this.hasMany(models.InventoryReserve, {
+      foreignKey: "project_id",
+      as: "reserves",
+    });
   }
 }
 

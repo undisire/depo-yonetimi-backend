@@ -1,9 +1,10 @@
-const express = require("express");
-const router = express.Router();
 const { body } = require("express-validator");
-const User = require("../models/User");
+const { User } = require("../models");
 const { auth, generateToken } = require("../middleware/auth");
 const { validate } = require("../middleware/validators");
+const express = require("express");
+
+const router = express.Router();
 
 // Kullanıcı kaydı
 router.post(

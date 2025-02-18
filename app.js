@@ -106,10 +106,12 @@ const routes = {
   warehouses: require("./routes/warehouses"),
   users: require("./routes/users"),
   uoms: require("./routes/uoms"),
-  institutions: require("./routes/institutions"),
+  suppliers: require("./routes/suppliers"),
   employees: require("./routes/employees"),
   roles: require("./routes/roles"),
-  inventory: require("./routes/inventory"),
+  "inventory/items": require("./routes/inventory-items"),
+  "inventory/reserves": require("./routes/inventory-reserves"),
+  "inventory/transactions": require("./routes/inventory-transactions"),
 };
 
 for (const [routeName, routeController] of Object.entries(routes)) {
