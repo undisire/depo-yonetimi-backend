@@ -12,6 +12,11 @@ class Material extends Model {
       foreignKey: "material_id",
       as: "attributes",
     });
+
+    this.hasMany(models.InventoryItem, {
+      foreignKey: "material_id",
+      as: "inventory_items",
+    });
   }
 }
 

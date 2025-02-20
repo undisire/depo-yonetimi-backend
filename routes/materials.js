@@ -1,7 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const { Op } = require("sequelize");
-const { Material, MaterialAttribute, Uom } = require("../models");
+const {
+  Material,
+  MaterialAttribute,
+  Uom,
+  InventoryItem,
+} = require("../models");
 const StockMovement = require("../models/StockMovement");
 const Request = require("../models/Request");
 const File = require("../models/File");
@@ -15,52 +20,46 @@ const socketService = require("../services/socketService"); // Added socketServi
 const searchService = require("../services/searchService");
 const sequelize = require("../config/database");
 
-router.get(
-  "/",
-  auth(["admin"]),
-  activityLogger("list_materials"),
-  async (req, res, next) => {
-    try {
-      const search = new SearchBuilder(req.query)
-        // Temel arama
-        .addSearch(["sap_no", "name", "description"], req.query.search)
-        .addInclude(Uom, {}, false, "uom")
-        // Filtreleme
-        .addFilter("unit", req.query.unit)
-        .addNumberRange("stock_qty", req.query.min_stock, req.query.max_stock)
-        // Sıralama
-        .addOrder(req.query.sort_by || "id", req.query.sort_direction || "DESC")
-        // Sayfalama
-        .setPagination(req.query.page, req.query.limit);
+router.get("/", auth(["admin"]), async (req, res, next) => {
+  try {
+    const search = new SearchBuilder(req.query)
+      // Temel arama
+      .addSearch(["sap_no", "name", "description"], req.query.search)
+      .addInclude(Uom, {}, false, "uom")
+      // Filtreleme
+      .addFilter("unit", req.query.unit)
+      .addNumberRange("stock_qty", req.query.min_stock, req.query.max_stock)
+      // Sıralama
+      .addOrder(req.query.sort_by || "id", req.query.sort_direction || "DESC")
+      // Sayfalama
+      .setPagination(req.query.page, req.query.limit);
 
-      const { count, rows } = await Material.findAndCountAll(search.build());
+    const { count, rows } = await Material.findAndCountAll(search.build());
 
-      // Stok hareketi ve talep istatistiklerini hesapla
-      const materials = rows.map((material) => ({
-        ...material.toJSON(),
-        stats: {
-          total_requests: material.Requests?.length || 0,
-          pending_requests:
-            material.Requests?.filter((r) => r.status === "pending").length ||
-            0,
-          stock_movements: material.StockMovements?.length || 0,
-        },
-      }));
+    // Stok hareketi ve talep istatistiklerini hesapla
+    const materials = rows.map((material) => ({
+      ...material.toJSON(),
+      stats: {
+        total_requests: material.Requests?.length || 0,
+        pending_requests:
+          material.Requests?.filter((r) => r.status === "pending").length || 0,
+        stock_movements: material.StockMovements?.length || 0,
+      },
+    }));
 
-      res.json({
-        data: materials,
-        meta: {
-          total: count,
-          page: parseInt(req.query.page) || 1,
-          limit: parseInt(req.query.limit) || 10,
-          total_pages: Math.ceil(count / (parseInt(req.query.limit) || 10)),
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
+    res.json({
+      data: materials,
+      meta: {
+        total: count,
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 10,
+        total_pages: Math.ceil(count / (parseInt(req.query.limit) || 10)),
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 router.get(
   "/:id",
@@ -217,5 +216,58 @@ router.delete(
     }
   }
 );
+
+router.get("/:id/inventory-items", auth(["admin"]), async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { page = 1, limit = 20, search } = req.query;
+
+    const material = await Material.findByPk(id);
+
+    if (!material) {
+      const error = new Error("Malzeme bulunamadı");
+      error.status = 404;
+      throw error;
+    }
+
+    const where = { material_id: id };
+
+    if (search) {
+      where[Op.or] = [
+        { "$material.name$": { [Op.like]: `%${search}%` } },
+        { "$warehouse.name$": { [Op.like]: `%${search}%` } },
+      ];
+    }
+
+    const { rows: inventoryItems, count } = await InventoryItem.findAndCountAll(
+      {
+        where,
+        include: [
+          {
+            model: Material,
+            as: "material",
+            required: true,
+          },
+          "warehouse",
+          "uom",
+        ],
+        order: [["id", "DESC"]],
+        limit: parseInt(limit),
+        offset: (page - 1) * limit,
+      }
+    );
+
+    res.json({
+      data: inventoryItems,
+      meta: {
+        total: count,
+        page: parseInt(page),
+        total_pages: Math.ceil(count / limit),
+      },
+    });
+  } catch (e) {
+    next(e);
+  }
+});
 
 module.exports = router;
